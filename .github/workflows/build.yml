@@ -1,4 +1,4 @@
-name: Build C++ Project with Attestation
+name: Build C++ Project with Attestation (Ubuntu 20.04)
 
 on:
   push:
@@ -14,13 +14,18 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04   # 👈 Build inside Ubuntu 20.04 environment (glibc 2.31)
 
     steps:
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            cmake g++ make git ca-certificates
+
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Install CMake and Build Tools
-        run: sudo apt-get update && sudo apt-get install -y cmake g++
 
       - name: Configure Project
         run: cmake -S . -B build
@@ -34,7 +39,7 @@ jobs:
           name: HelloWorldApp
           path: build/HelloWorldApp
 
-      # ✅ Generate build provenance attestation (SLSA)
+      # ✅ Generate build provenance attestation (SLSA-compliant)
       - name: Generate Build Attestation
         uses: actions/attest-build-provenance@v1
         with:
