@@ -1,0 +1,41 @@
+name: Build C++ Project with Attestation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  id-token: write         # ✅ Needed for OIDC token to sign attestation
+  contents: read          # ✅ Read repository code
+  attestations: write     # ✅ Create and upload attestations
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install CMake and Build Tools
+        run: sudo apt-get update && sudo apt-get install -y cmake g++
+
+      - name: Configure Project
+        run: cmake -S . -B build
+
+      - name: Build Executable
+        run: cmake --build build --config Release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HelloWorldApp
+          path: build/HelloWorldApp
+
+      # ✅ Generate build provenance attestation (SLSA)
+      - name: Generate Build Attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: build/HelloWorldApp
